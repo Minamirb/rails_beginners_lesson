@@ -1,0 +1,241 @@
+---
+layout: default
+title: 初心者レッスン　lesson2
+permalink: rails3.2/lesson2
+---
+
+# Lesson2
+
+---
+
+### <span class="icon-leaf"></span> Lesson1の復習
+
+使ったコマンド
+
+{% highlight sh %}
+$ rails new プロジェクト名
+$ rails generate scaffold テーブル名 カラム:データ型
+$ rake db:migrate
+$ rails console #または rails c
+$ rails server #または rails 
+$ rails -h                      #railsコマンドのヘルプ
+$ rails generate -h             #rails generateコマンドのヘルプ
+$ rails generate scaffold -h    #rails generate scaffoldコマンドのヘルプ
+$ rake -T                       #rakeで実行できるタスクの一覧
+$ rake routes
+{% endhighlight %}
+
+---
+
+### <span class="icon-leaf"></span> 今日はURLとリレーションのお話
+
+例えば、URLをこんな風に
+
+http://example.com/<span class="text-error">animes/1</span><span class="text-info">/caractors</span>
+
+（animes/1の"1"の部分を"TIGER & BUNNY"とか名前にしたいという方には、こちら つ [gem friendly_id](https://github.com/norman/friendly_id)）
+
+リレーションはこんな風に
+
+`アニメ` 1 : 多 `キャラクター`
+
+（とあるキャラが他のアニメにも出てることは考えないでおきます。）
+
+---
+
+`URLとリレーションの設定は「それぞれ個々に設定するもの」と覚えておきましょう。`
+
+---
+
+### <span class="icon-leaf"></span > URLの設定
+
+http://example.com/<span class="text-error">animes/1</span><span class="text-info">/caractors</span> の場合
+
+* config/routes.rbを編集
+
+{% highlight ruby %}
+resources :animes do
+  resources :caractors
+end
+{% endhighlight %}
+
+そうしてから、rake routesコマンドでURLの出来映えを確認しましょう。
+
+---
+
+### <span class="icon-leaf"></span > リレーションの設定
+
+`アニメ` 1 : 多 `キャラクター` の場合
+
+* app/models以下の各ファイルを編集
+
+anime.rb
+{% highlight ruby %}
+class Anime
+  has_many :caractors #追記
+end
+{% endhighlight %}
+
+caractor.rb
+{% highlight ruby %}
+class Caractor
+  has_many :caractors #追記
+end
+{% endhighlight %}
+
+---
+
+### <span class="icon-leaf icon-sccess"></span> リンクの変更
+
+ここまできたら、具体的に登録ページを作っていきます。
+
+まずは、リンクの設定方法の確認。
+
+rake routesコマンドを実行してみると
+
+{% highlight sh %}
+new_anime GET    /master_menu/animes/new(.:format)   animes#new
+{% endhighlight %}
+
+"GET"のうしろから"(.:format)"の間が、出来上がりのURL。
+
+html(.erb)には、
+
+app/views/animes/index.html.erb
+{% highlight ruby %}
+<%= link_to 'New Anime', new_anime_path %>
+{% endhighlight %}
+
+という記述があり、"new_anime"というのを"_path"につなぐだけ。
+
+簡単！
+
+---
+
+では、例題。
+
+* とあるアニメページ(/animes/:anime_id)に、キャラクター登録ページ(/animes/:anime_id/caractors/new)へのリンクを貼りたい。
+
+rake routesで確認。
+
+{% highlight sh %}
+new_anime_caractor GET    /animes/:anime_id/caractors/new(.:format)   caractors#new
+{% endhighlight %}
+
+app/views/animes/show.html.erb
+{% highlight ruby %}
+<%= link_to 'New Caractor', new_anime_caractor_path(@anime) %>
+{% endhighlight %}
+
+<span class="text-error">"_path"の後ろには、URLに入る:anime_idのネタとなるものを渡してあげないといけない。</span>
+
+---
+
+### <span class="icon-leaf icon-sccess"></span> 登録ページ先でのリレーションの保持
+
+> 方法その１：URLの階層構造を使って、関係先のidをもらう
+
+* とあるアニメページ(/animes/:anime_id)からキャラクター登録ページ(/animes/:anime_id/caractors/new)へ素直に移動させる。
+
+app/controllers/caractors_controller.rb
+{% highlight ruby %}
+def new
+  @caractor = Caractor.new
+  @anime    = Anime.find(params[:anime_id]) #追記
+  ・・・
+end
+
+def create
+  @anime    = Anime.find(params[:anime_id]) #追記
+  @caractor = @anime.caractors.new(params[:caractor]) #編集
+  ・・・
+end
+{% endhighlight %}
+
+`params[:anime_id]`と書くと、URLの/:anime_idを勝手に参照してくれる。
+
+便利！
+
+app/views/caractors/_form.html.erb
+{% highlight erb %}
+<%= form_for([@anime, @caractor]) do |f| %> <!--編集-->
+  ・・・
+  <div class="field">
+    <%= f.label :anime_id %><br />
+    <%= @anime.name %>                      <!--編集（表示するだけ）-->
+  </div>
+  ・・・
+<% end %>
+{% endhighlight %}
+
+---
+
+> 方法その２：セレクトボックスで関係先のidをもらう
+
+* 専用のキャラクター登録ページで、がんがん登録する。
+
+app/controllers/caractors_controller.rb
+{% highlight ruby %}
+def new
+  @caractor = Caractor.new
+  @animes   = Anime.all #追記
+  ・・・
+end
+
+def create
+  @caractor          = Caractors.new(params[:caractor]) #編集
+  @caractor.anime_id = params[:caractor][:anime_id] #追記
+  ・・・
+end
+{% endhighlight %}
+
+`params[:caractor][:anime_id]`と書くと、viewから送られて来た配列をうまい具合に拾ってくれる。
+
+便利！
+
+app/views/caractors/_form.html.erb
+{% highlight erb %}
+<%= form_for([@animes, @caractor]) do |f| %>                   <!--編集-->
+  ・・・
+  <div class="field">
+    <%= f.label :anime_id %><br />
+    <%= f.select :anime_id, @animes.map{|a| [a.name, a.id]} %> <!--編集（セレクトボックスに変更）-->
+  </div>
+  ・・・
+<% end %>
+{% endhighlight %}
+
+* `.map`はRubyのEnumerable#mapというメソッドです。
+* mapで@animesを展開して、f.selectでhtmlの[label, value]の部分を勝手に認識してくれます。
+
+---
+
+### <span class="icon-leaf icon-sccess"></span> ここまでできること
+
+* 画面遷移の設計
+* URLの設定
+* リレーションの設定
+* viewのリンクや必要情報の表示
+
+これだけ駆使してできると思います。がんばってください！
+
+---
+
+### <span class="icon-leaf icon-sccess"></span> おまけ
+
+* DBのテーブルとapp/modelsファイルを追加するコマンド
+
+{% highlight sh %}
+$ rails generate model テーブル名 カラム:データ型
+$ rake db:migrate
+{% endhighlight %}
+
+* app/controllersとapp/viewsを追加するコマンド
+
+{% highlight sh %}
+$ rails generate controller コントローラー名s #コントローラー名は複数形で書くこと！
+{% endhighlight %}
+
+---
+
+#### Lesson2はここまでです。おつかれさまでした <span class="icon-music"></span>
