@@ -79,7 +79,7 @@ end
 character.rb
 {% highlight ruby %}
 class Character
-  has_many :characters #追記
+  belongs_to :anime #追記
 end
 {% endhighlight %}
 
@@ -94,7 +94,7 @@ end
 rake routesコマンドを実行してみると
 
 {% highlight sh %}
-new_anime GET    /master_menu/animes/new(.:format)   animes#new
+new_anime GET    /animes/new(.:format)   animes#new
 {% endhighlight %}
 
 "GET"のうしろから"(.:format)"の間が、出来上がりのURL。
