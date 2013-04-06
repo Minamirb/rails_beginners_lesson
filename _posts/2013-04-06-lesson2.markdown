@@ -31,7 +31,7 @@ $ rake routes
 
 例えば、URLをこんな風に
 
-http://example.com/<span class="text-error">animes/1</span><span class="text-info">/caractors</span>
+http://example.com/<span class="text-error">animes/1</span><span class="text-info">/characters</span>
 
 （animes/1の"1"の部分を"TIGER & BUNNY"とか名前にしたいという方には、こちら つ [gem friendly_id](https://github.com/norman/friendly_id)）
 
@@ -49,13 +49,13 @@ http://example.com/<span class="text-error">animes/1</span><span class="text-inf
 
 ### <span class="icon-leaf"></span > URLの設定
 
-http://example.com/<span class="text-error">animes/1</span><span class="text-info">/caractors</span> の場合
+http://example.com/<span class="text-error">animes/1</span><span class="text-info">/characters</span> の場合
 
 * config/routes.rbを編集
 
 {% highlight ruby %}
 resources :animes do
-  resources :caractors
+  resources :characters
 end
 {% endhighlight %}
 
@@ -72,14 +72,14 @@ end
 anime.rb
 {% highlight ruby %}
 class Anime
-  has_many :caractors #追記
+  has_many :characters #追記
 end
 {% endhighlight %}
 
-caractor.rb
+character.rb
 {% highlight ruby %}
-class Caractor
-  has_many :caractors #追記
+class Character
+  has_many :characters #追記
 end
 {% endhighlight %}
 
@@ -114,17 +114,17 @@ app/views/animes/index.html.erb
 
 では、例題。
 
-* とあるアニメページ(/animes/:anime_id)に、キャラクター登録ページ(/animes/:anime_id/caractors/new)へのリンクを貼りたい。
+* とあるアニメページ(/animes/:anime_id)に、キャラクター登録ページ(/animes/:anime_id/characters/new)へのリンクを貼りたい。
 
 rake routesで確認。
 
 {% highlight sh %}
-new_anime_caractor GET    /animes/:anime_id/caractors/new(.:format)   caractors#new
+new_anime_character GET    /animes/:anime_id/characters/new(.:format)   characters#new
 {% endhighlight %}
 
 app/views/animes/show.html.erb
 {% highlight ruby %}
-<%= link_to 'New Caractor', new_anime_caractor_path(@anime) %>
+<%= link_to 'New Character', new_anime_character_path(@anime) %>
 {% endhighlight %}
 
 <span class="text-error">"_path"の後ろには、URLに入る:anime_idのネタとなるものを渡してあげないといけない。</span>
@@ -135,19 +135,19 @@ app/views/animes/show.html.erb
 
 > 方法その１：URLの階層構造を使って、関係先のidをもらう
 
-* とあるアニメページ(/animes/:anime_id)からキャラクター登録ページ(/animes/:anime_id/caractors/new)へ素直に移動させる。
+* とあるアニメページ(/animes/:anime_id)からキャラクター登録ページ(/animes/:anime_id/characters/new)へ素直に移動させる。
 
-app/controllers/caractors_controller.rb
+app/controllers/characters_controller.rb
 {% highlight ruby %}
 def new
-  @caractor = Caractor.new
+  @character = Character.new
   @anime    = Anime.find(params[:anime_id]) #追記
   ・・・
 end
 
 def create
   @anime    = Anime.find(params[:anime_id]) #追記
-  @caractor = @anime.caractors.new(params[:caractor]) #編集
+  @character = @anime.characters.new(params[:character]) #編集
   ・・・
 end
 {% endhighlight %}
@@ -156,9 +156,9 @@ end
 
 便利！
 
-app/views/caractors/_form.html.erb
+app/views/characters/_form.html.erb
 {% highlight erb %}
-<%= form_for([@anime, @caractor]) do |f| %> <!--編集-->
+<%= form_for([@anime, @character]) do |f| %> <!--編集-->
   ・・・
   <div class="field">
     <%= f.label :anime_id %><br />
@@ -174,28 +174,28 @@ app/views/caractors/_form.html.erb
 
 * 専用のキャラクター登録ページで、がんがん登録する。
 
-app/controllers/caractors_controller.rb
+app/controllers/characters_controller.rb
 {% highlight ruby %}
 def new
-  @caractor = Caractor.new
+  @character = Character.new
   @animes   = Anime.all #追記
   ・・・
 end
 
 def create
-  @caractor          = Caractors.new(params[:caractor]) #編集
-  @caractor.anime_id = params[:caractor][:anime_id] #追記
+  @character          = Characters.new(params[:character]) #編集
+  @character.anime_id = params[:character][:anime_id] #追記
   ・・・
 end
 {% endhighlight %}
 
-`params[:caractor][:anime_id]`と書くと、viewから送られて来た配列をうまい具合に拾ってくれる。
+`params[:character][:anime_id]`と書くと、viewから送られて来た配列をうまい具合に拾ってくれる。
 
 便利！
 
-app/views/caractors/_form.html.erb
+app/views/characters/_form.html.erb
 {% highlight erb %}
-<%= form_for([@animes, @caractor]) do |f| %>                   <!--編集-->
+<%= form_for([@animes, @character]) do |f| %>                   <!--編集-->
   ・・・
   <div class="field">
     <%= f.label :anime_id %><br />
