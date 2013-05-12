@@ -99,7 +99,7 @@ new_anime GET    /animes/new(.:format)   animes#new
 
 "GET"のうしろから"(.:format)"の間が、出来上がりのURL。
 
-html(.erb)には、
+html.erbには、
 
 app/views/animes/index.html.erb
 {% highlight ruby %}
@@ -114,7 +114,7 @@ app/views/animes/index.html.erb
 
 では、例題。
 
-* とあるアニメページ(/animes/:anime_id)に、キャラクター登録ページ(/animes/:anime_id/characters/new)へのリンクを貼りたい。
+* とあるアニメページ /animes/:anime_id に、キャラクター登録ページ /animes/:anime_id/characters/new へのリンクを貼る
 
 rake routesで確認。
 
@@ -131,22 +131,26 @@ app/views/animes/show.html.erb
 
 ---
 
-### <span class="icon-leaf icon-sccess"></span> 登録ページ先でのリレーションの保持
+### <span class="icon-leaf icon-sccess"></span> ページでのリレーションの保持
 
 > 方法その１：URLの階層構造を使って、関係先のidをもらう
 
-* とあるアニメページ(/animes/:anime_id)からキャラクター登録ページ(/animes/:anime_id/characters/new)へ素直に移動させる。
+* とあるアニメページ /animes/:anime_id からキャラクター登録ページ /animes/:anime_id/characters/new へ移動して登録する
+
+まず、rake routesで new_anime_charactor GET /animes/:anime_id/charactors/new(.:format) charactors#new があることを確認しましょう。
+
+そして、以下の編集をします。
 
 app/controllers/characters_controller.rb
 {% highlight ruby %}
 def new
   @character = Character.new
-  @anime    = Anime.find(params[:anime_id]) #追記
+  @anime     = Anime.find(params[:anime_id]) #追記
   ・・・
 end
 
 def create
-  @anime    = Anime.find(params[:anime_id]) #追記
+  @anime     = Anime.find(params[:anime_id]) #追記
   @character = @anime.characters.new(params[:character]) #編集
   ・・・
 end
@@ -162,7 +166,7 @@ app/views/characters/_form.html.erb
   ・・・
   <div class="field">
     <%= f.label :anime_id %><br />
-    <%= @anime.name %>                      <!--編集（表示するだけ）-->
+    <%= @anime.name %>                      <!--編集（表示するだけにする）-->
   </div>
   ・・・
 <% end %>
@@ -172,7 +176,11 @@ app/views/characters/_form.html.erb
 
 > 方法その２：セレクトボックスで関係先のidをもらう
 
-* 専用のキャラクター登録ページで、がんがん登録する。
+* キャラクター登録ページ /characters/new でガンガン登録する
+
+まず、rake routesで new_charactor GET /charactors/new(.:format) charactors#new があることを確認しましょう。
+
+そして、以下の編集をします。
 
 app/controllers/characters_controller.rb
 {% highlight ruby %}
@@ -183,7 +191,7 @@ def new
 end
 
 def create
-  @character          = Characters.new(params[:character]) #編集
+  @character          = Character.new(params[:character])
   @character.anime_id = params[:character][:anime_id] #追記
   ・・・
 end
@@ -195,7 +203,7 @@ end
 
 app/views/characters/_form.html.erb
 {% highlight erb %}
-<%= form_for([@animes, @character]) do |f| %>                   <!--編集-->
+<%= form_for(@character) do |f| %>
   ・・・
   <div class="field">
     <%= f.label :anime_id %><br />
@@ -217,7 +225,7 @@ app/views/characters/_form.html.erb
 * リレーションの設定
 * viewのリンクや必要情報の表示
 
-これだけ駆使してできると思います。がんばってください！
+これだけは駆使してできると思います。がんばってください！
 
 ---
 
