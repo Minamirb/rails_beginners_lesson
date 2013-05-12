@@ -69,7 +69,7 @@ $ rails new プロジェクト名
 * テーブルの元ネタを作る
 
 {% highlight sh %}
-$ rails generate scaffold テーブル名 カラム:データ型
+$ rails generate scaffold テーブル名 カラム1:データ型1 カラム2:データ型2 カラム3:データ型3
 {% endhighlight %}
 
 `データ型：string, text, integer, date, time, datetime, boolean`
