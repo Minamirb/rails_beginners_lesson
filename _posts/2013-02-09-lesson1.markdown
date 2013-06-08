@@ -104,7 +104,7 @@ $ rake -T                       #rakeで実行できるタスクの一覧
 
 ---
 
-### <span class="icon-leaf"></span> Rails内の役割分担
+### <span class="icon-leaf"></span><a id="gem_roles"></a> Rails内の役割分担
 
 ![Rails Structure]({{site.baseurl}}/img/rails_structure.png "Rails Structure")
 
