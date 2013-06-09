@@ -135,6 +135,8 @@ Railsで使う場合は、専用のgemが必要です。
 group :assets do
 #省略
   gem 'twitter-bootstrap-rails' #追記
+  gem 'therubyracer' #追記
+  gem 'less-rails' #追記
 end
 {% endhighlight %}
 
