@@ -4,7 +4,7 @@ title: 初心者レッスン　lesson5
 permalink: rails3.2/lesson5
 ---
 
-# Lesson5（鋭意作成中）
+# Lesson5
 
 ---
 
@@ -29,7 +29,7 @@ Rubyに働いてもらう
 ここでは[heroku](https://www.heroku.com)という初心者にも比較的優しい、サーバーのことを知らなくても何とかなるサービス（お試し程度なら無料！）があるので、それを使いましょう。  
 
 ただし、heroku上ではRubyのバージョンがデフォルトで2.0.0です。自分でherokuをカスタムしない人はアプリがruby2.0.0で動くかどうか確認してください。  
-また、バージョン管理システムの[git](http://git-scm.com)を使う必要があります。gitのことがよくわからないという方は、こちらのページに最低限必要なことが書いてありますので、参考にしてください。
+また、バージョン管理システムの[git](http://git-scm.com)を使う必要があります。gitのことがよくわからないという方は、[こちらのページ]({{site.baseurl}}intro-git)に最低限必要なことが書いてありますので、参考にしてください。
 
 ---
 
@@ -98,7 +98,13 @@ herokuにloginするために、自分のPCへssh鍵のPATHを設定しておき
 {% highlight sh %}
 $ ssh-add "~/鍵ファイルを置くPATH/鍵のファイル名"
 {% endhighlight %}
-このときの鍵ファイル名は秘密鍵のほうです。
+このときの鍵ファイル名は秘密鍵のほうです。  
+
+
+もし、ssh-addでエラーになるときは、以下のコマンドでssh-agentというプロセスを起動してみてください。
+{% highlight sh %}
+$ eval `ssh-agent`
+{% endhighlight %}
 
 ---
 
@@ -133,7 +139,7 @@ heroku上にアプリを乗せると、自動的にproductionモードで起動�
 
 今、自分のPCで何気なくrails sとコマンドをたたいているときは、developmentモードで動いています。  
 このときはsqlite3を使用しているので、sqlite3のgemにも細工をしておきます。  
-
+すでにgem 'sqlite3'という行があるはずですので、その前後を:developmentで囲みましょう。  
 
 Gemfile
 {% highlight ruby %}
@@ -141,13 +147,20 @@ group :development do
   gem 'sqlite3'
 end
 {% endhighlight %}
-すでにgem 'sqlite3'という行があるはずですので、その前後を:developmentで囲みましょう。
+
+heroku上ではGemfileではなく、Gemfile.lock（bundle installしたら自動で変更されるgem管理ファイル）の方が重要ですので、忘れずにbundle installしてコミットしておいてください。
+
+{% highlight sh %}
+$ bundle install
+$ git add .
+$ git commit -m "change and add gems for heroku."
+{% endhighlight %}
 
 ---
 
 #### 8. URLを作る
 
-アプリにアクセスするにはURLが必要ですが、無料枠では自分のドメインを使うことはできません。  
+アプリにアクセスするにはURLが必要ですが、無料では自分のドメインを使うことはできません。  
 heroku上でのプロジェクト名がURLの一部に使われます。  
 例えば、プロジェクト名が minamirb だとすると、URLは http://minami.herokuapp.comになります。  
 
@@ -157,7 +170,7 @@ herokuサイトにログインしてプロジェクトを作る方法もあり�
 アプリのディレクトリにcdしてからコマンドを実行してください。
 {% highlight sh %}
 $ cd 自分のアプリのディレクトリ
-$ heroku create --stack ceder プロジェクト名
+$ heroku create プロジェクト名
 {% endhighlight %}
 もし、このプロジェクト名が他の人とかぶっていた場合はメッセージが帰ってくるのでご心配なく。
 
@@ -167,7 +180,7 @@ $ heroku create --stack ceder プロジェクト名
 
 いよいよ、herokuへアプリを預けるときがきました。  
 ターミナルからgitでherokuへ渡します。  
-<span class="text-error">herokuへ渡す前に、アプリのコードがすべてcommitされているかどうか確認してください。<_span>
+<span class="text-error">herokuへ渡す前に、アプリのコードがすべてcommitされているかどうか確認してください。</span>
 {% highlight sh %}
 $ cd 自分のアプリのディレクトリ
 $ git push heroku master
