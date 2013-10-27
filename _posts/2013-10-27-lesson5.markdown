@@ -96,7 +96,7 @@ $ heroku keys:add ~/鍵ファイルを置くPATH/鍵のファイル名.pub
 herokuにloginするために、自分のPCへssh鍵のPATHを設定しておきます。  
 これをすると、login時にssh鍵の場所をいちいち書かずに済みます。
 {% highlight sh %}
-$ ssh-add "~/鍵ファイルを置くPATH/鍵のファイル名"
+$ ssh-add ~/鍵ファイルを置くPATH/鍵のファイル名
 {% endhighlight %}
 このときの鍵ファイル名は秘密鍵のほうです。  
 
@@ -162,7 +162,7 @@ $ git commit -m "change and add gems for heroku."
 
 アプリにアクセスするにはURLが必要ですが、無料では自分のドメインを使うことはできません。  
 heroku上でのプロジェクト名がURLの一部に使われます。  
-例えば、プロジェクト名が minamirb だとすると、URLは http://minami.herokuapp.comになります。  
+例えば、プロジェクト名が minamirb だとすると、URLは http://minamirb.herokuapp.comになります。  
 
 
 herokuサイトにログインしてプロジェクトを作る方法もありますが、ターミナルからherokuのプロジェクトを作った方があとがラクなので、  
