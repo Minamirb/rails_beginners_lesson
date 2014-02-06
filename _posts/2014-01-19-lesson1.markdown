@@ -137,15 +137,15 @@ $ rake routes
 
 scaffoldをすると勝ってに作ってくれるURL
 
-| URL                                |action|
-|:-----------------------------------|:----:|
-|http://example.com/resources        | <span class="text-error">index</span>  |
-|http://example.com/resources/new    | <span class="text-error">new</span>    |
-|http://example.com/resources        | <span class="text-error">create</span> |
-|http://example.com/resources/id     | <span class="text-error">show</span>   |
-|http://example.com/resources/id/edit| <span class="text-error">edit</span>   |
-|http://example.com/resources/id     | <span class="text-error">update</span> |
-|http://example.com/resources/id     | <span class="text-error">delete</span> |
+|Prefix   |Verb |URI Pattern                 |Controller#Action                    |
+|:-------:|:----:|:---------------------------|:-----------------------------------:|
+|resources|GET   |/resources(.:format)        |<span class="text-error">index</span>|
+|resources|GET   |/resources/new(.:format)    |<span class="text-error">new</span>   |
+|resources|POST  |/resources(.:format)        |<span class="text-error">create</span>|
+|resources|GET   |/resources/id(.:format)     |<span class="text-error">show</span>  |
+|resources|GET   |/resources/id/edit(.:format)|<span class="text-error">edit</span>  |
+|resources|PATCH |/resources/id(.:format)     |<span class="text-error">update</span>|
+|resources|DELETE|/resources/id(.:format)     |<span class="text-error">delete</span>|
 
 ---
 
