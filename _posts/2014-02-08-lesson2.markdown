@@ -1,0 +1,347 @@
+---
+layout: default
+title: 初心者レッスン　lesson2
+permalink: rails4.0.2/lesson2
+---
+
+# Lesson2
+
+---
+
+### <span class="icon-leaf"></span> Lesson1の復習
+
+使ったコマンド
+
+{% highlight sh %}
+$ rails new プロジェクト名
+$ rails generate scaffold テーブル名 カラム:データ型
+$ rake db:migrate
+$ rails console #または rails c
+$ rails server #または rails 
+$ rails -h                      #railsコマンドのヘルプ
+$ rails generate -h             #rails generateコマンドのヘルプ
+$ rails generate scaffold -h    #rails generate scaffoldコマンドのヘルプ
+$ rake -T                       #rakeで実行できるタスクの一覧
+$ rake routes
+{% endhighlight %}
+
+---
+
+### <span class="icon-leaf"></span> 今日はURLとリレーションのお話
+
+例えば、リレーションがこんな風だとします。（同じキャラクターが他のアニメにも出てることは考えないでおきます。）
+
+アニメ `1` : `多` キャラクター
+
+URLはこんな風にします。
+
+http://example.com/<span class="text-error">animes/1</span><span class="text-info">/characters</span>
+
+animes/1の"1"の部分は、Animeテーブル内での通し番号 = idです。
+
+（もし、URLのidの部分を"TIGER & BUNNY"とか名前にしたいという方には、こちらのgemをどうぞ。 つ [gem friendly_id](https://github.com/norman/friendly_id)）
+
+これを実現するためには、<span class="text-error">リレーション（データベースに関する設定）とURLの設定が、それぞれ個々に必要です。</span>
+
+それをこれからお話します。
+
+---
+
+### <span class="icon-leaf"></span > URLの設定
+
+config/routes.rbを編集します。
+
+例）http://example.com/<span class="text-error">animes/1</span><span class="text-info">/characters</span>
+
+{% highlight ruby %}
+resources :characters
+
+resources :animes do #編集
+  resources :characters #追記
+end #追記
+{% endhighlight %}
+
+animesの後ろにつながる部分をdo~endの中に書きます。元々あったresources :charactersは後で使うので残しておきます。
+
+そうして、rake routesコマンドでURLの出来を確認してみてください。
+{% highlight sh %}
+$ rake routes
+              Prefix Verb   URI Pattern                                     Controller#Action
+          characters GET    /characters(.:format)                           characters#index
+                     POST   /characters(.:format)                           characters#create
+       new_character GET    /characters/new(.:format)                       characters#new
+      edit_character GET    /characters/:id/edit(.:format)                  characters#edit
+           character GET    /characters/:id(.:format)                       characters#show
+                     PATCH  /characters/:id(.:format)                       characters#update
+                     PUT    /characters/:id(.:format)                       characters#update
+                     DELETE /characters/:id(.:format)                       characters#destroy
+    anime_characters GET    /animes/:anime_id/characters(.:format)          characters#index
+                     POST   /animes/:anime_id/characters(.:format)          characters#create
+ new_anime_character GET    /animes/:anime_id/characters/new(.:format)      characters#new
+edit_anime_character GET    /animes/:anime_id/characters/:id/edit(.:format) characters#edit
+     anime_character GET    /animes/:anime_id/characters/:id(.:format)      characters#show
+                     PATCH  /animes/:anime_id/characters/:id(.:format)      characters#update
+                     PUT    /animes/:anime_id/characters/:id(.:format)      characters#update
+                     DELETE /animes/:anime_id/characters/:id(.:format)      characters#destroy
+              animes GET    /animes(.:format)                               animes#index
+                     POST   /animes(.:format)                               animes#create
+           new_anime GET    /animes/new(.:format)                           animes#new
+          edit_anime GET    /animes/:id/edit(.:format)                      animes#edit
+               anime GET    /animes/:id(.:format)                           animes#show
+                     PATCH  /animes/:id(.:format)                           animes#update
+                     PUT    /animes/:id(.:format)                           animes#update
+                     DELETE /animes/:id(.:format)                           animes#destroy
+{% endhighlight %}
+
+どうですか？animesの後ろにcharactersが付いたURLがありますね。do~endで囲ったものが後ろに付いてくれます。また、do~endで囲ったほうのanimes単体のURLも作ってくれます。resources :charactersのように１行だけだと、そのテーブル単体のURLができます。
+
+このように、URLをつなげるときは理論上do~endでどんどん中に囲んでいけばOKですが、あまり長いURLはお行儀がわるいのでテーブル名2つ分ぐらいまでにしておきましょう。
+
+---
+
+### <span class="icon-leaf"></span > リレーションの設定
+
+app/models以下のファイルを編集します。
+
+例）アニメ `1` : `多` キャラクター
+
+anime.rb
+{% highlight ruby %}
+class Anime
+  has_many :characters #追記
+end
+{% endhighlight %}
+
+character.rb
+{% highlight ruby %}
+class Character
+  belongs_to :anime #追記
+end
+{% endhighlight %}
+
+英語のように読めばわかりやすいと思います。
+
+* class Animeは、characters`(複数形)`をたくさんもっている。
+* class Characterは、anime`(単数形)`に属している。
+
+DBにデータがない状態では特に確認する方法がないので、このまま次に進みます。
+
+---
+
+### <span class="icon-leaf icon-sccess"></span> ページ上のリンクの変更
+
+ここまでできたら、リレーションがあるリンクをページ上に作っていきましょう。
+
+まずは、リンクの設定手順の確認です。
+
+* rake routesコマンドでURLとhtml.erbに記述するpathを確認
+
+{% highlight sh %}
+new_anime GET    /animes/new(.:format)   animes#new
+{% endhighlight %}
+
+"/animes/new"が、出来上がりのURL。"new_anime"が、html.erbに書くpath。
+
+* html.erbを編集
+
+app/views/animes/index.html.erb
+{% highlight ruby %}
+<%= link_to 'New Anime', new_anime_path %>
+{% endhighlight %}
+
+link_toの記述に"new_anime"を"_path"につなげて書くだけ。
+
+ここまでいいですか？
+
+---
+
+では、例題です。
+
+例）とあるアニメ詳細ページ /animes/:id に、キャラクター登録ページ /animes/:anime_id/characters/new へのリンクを貼る
+
+rake routesで確認します。
+
+{% highlight sh %}
+new_anime_character GET    /animes/:anime_id/characters/new(.:format)   characters#new
+{% endhighlight %}
+
+また、URLとhtml.erbとの関係は以下のようになります。
+{% highlight sh %}
+URI Pattern                               Controller#Action        views
+/characters(.:format)                     characters#index         app/views/characters/index.html.erb
+/characters(.:format)                     characters#create        -
+/characters/new(.:format)                 characters#new           app/views/characters/new.html.erb, _form.html.erb
+/characters/:id/edit(.:format)            characters#edit          app/views/characters/edit.html.erb, _form.html.erb
+/characters/:id(.:format)                 characters#show          app/views/characters/show.html.erb
+/characters/:id(.:format)                 characters#update        -
+/characters/:id(.:format)                 characters#update        -
+/characters/:id(.:format)                 characters#destroy       -
+{% endhighlight %}
+
+アニメ詳細ページに該当するhtml.erbは、app/views/animes/show.html.erbです。ここに以下のリンクを追加します。
+{% highlight ruby %}
+<%= link_to 'New Character', new_anime_character_path(@anime) %>
+{% endhighlight %}
+
+<span class="text-error">"_path"の後ろに、URLの:anime_idのネタとなる@animeを渡してください。</span>
+
+この@animeは、アニメ詳細ページを呼び出すapp/controllers/animes_controller.rbから来ています。rake routesコマンドで表示されたController#Actionの部分で、どこがどう呼ばれるのか確認してみてください。
+
+animes_controller.rb
+{% highlight ruby %}
+class AnimesController < ApplicationController
+  before_action :set_anime, only: [:show, :edit, :update, :destroy]
+  ・・・
+  # GET /animes/1
+  # GET /animes/1.json
+  def show
+  end
+  ・・・
+  private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_anime
+      @anime = Anime.find(params[:id])
+    end
+
+    # Never trust parameters from the scary internet, only allow the white list through.
+    def anime_params
+      params.require(:anime).permit(:name)
+    end
+end
+{% endhighlight %}
+
+Rubyぽくなってきましたが、焦らなくても大丈夫です。すべては設定だと思ってください。
+
+def~endで囲まれたところがそれぞれ、controllerのactionと呼ばれる部分です。
+
+今回該当するdef show~endの中には何もありません。でも、2行目にbecore_action（というコールバック）で:set_anime（メソッド）を実行します。いつ実行するのか、only: [:show ...]のactionのときです。
+
+そうすると、privateの下にあるdef set_anime~endの中には@animeというのがあって、def show~endのとき、この@animeが呼ばれるというわけです。
+
+@animeには、:idを持つanimeの情報がすべて入っています。なので、リンクの"_path"にそのまま渡せばRailsがよしなにしてくれるという訳です。
+
+---
+
+### <span class="icon-leaf icon-sccess"></span> データ登録時のリレーション情報の受け渡し
+
+データを登録するとき、リレーション情報も一緒に登録してしまいましょう。
+
+> 方法その１：URLからリレーションのidをもらう
+
+例）とあるアニメ詳細ページ /animes/:anime_id からキャラクター登録ページ /animes/:anime_id/characters/new へ移動して登録する
+
+rake routesで/animes/:anime_id/charactors/newがあることを確認しましょう。
+
+そして、以下の編集をします。
+
+app/controllers/characters_controller.rb
+{% highlight ruby %}
+def new
+  @anime     = Anime.find(params[:anime_id]) #追記
+  @character = @anime.characters.new(params[:character]) #編集
+  ・・・
+end
+
+def create
+  @anime     = Anime.find(params[:anime_id]) #追記
+  @character = @anime.characters.new(params[:character]) #編集
+  ・・・
+end
+{% endhighlight %}
+
+controller内で`params[:anime_id]`と書くと、URLの/:anime_idを勝手に参照してくれます。また、@characterに@animeからつないだカタチで値を入れると、@animeとcharacterのリレーション情報を勝手に引き継いでくれます。
+
+便利！
+
+こうすると、キャラクター登録ページでanime情報を表示できるようになり、登録するときにcharacterとの関係も保存されます。
+
+app/views/characters/_form.html.erb
+{% highlight erb %}
+<%= form_for([@anime, @character]) do |f| %> <!--編集（create用URLの作成）-->
+  ・・・
+  <div class="field">
+    <%= f.label :anime_id %><br />
+    <%= @anime.name %>                       <!--編集（anime情報の表示）-->
+  </div>
+  ・・・
+<% end %>
+{% endhighlight %}
+
+---
+
+> 方法その２：登録フォームのセレクトボックスでリレーションのidをもらう
+
+例）キャラクター登録ページ /characters/new でガンガン登録する
+
+まず、viewでセレクトボックスを用意して、controllerに情報が渡せるようにします。
+
+app/views/characters/_form.html.erb
+{% highlight erb %}
+<%= form_for(@character) do |f| %>
+  ・・・
+  <div class="field">
+    <%= f.label :anime_id %><br />
+    <%= f.select :anime_id, @animes.map{|a| [a.name, a.id]} %> <!--編集（セレクトボックスに変更）-->
+  </div>
+  ・・・
+<% end %>
+{% endhighlight %}
+
+ちょっとRubyとhtmlなお話。
+
+* .map はRubyのEnumerable#mapというメソッドです。
+* これで@animesを展開してセレクトボックスhtmlの[label, value]部分を作っています。
+
+次に、rake routesで/charactors/newがあることを確認しましょう。そして、以下の編集をします。
+
+app/controllers/characters_controller.rb
+{% highlight ruby %}
+def new
+  @character = Character.new
+  @animes   = Anime.all #追記
+  ・・・
+end
+
+def create
+  @character          = Character.new(params[:character])
+  @character.anime_id = params[:character][:anime_id] #追記
+  ・・・
+end
+{% endhighlight %}
+
+`params[:character][:anime_id]`と書くと、viewから送られて来た配列をうまい具合に拾ってくれて、データが登録されるというわけです。
+
+便利！
+
+---
+
+### <span class="icon-leaf icon-sccess"></span> ここまでできること
+
+* 画面遷移の設計
+* URLの設定
+* リレーションの設定
+* viewのリンクや必要情報の表示
+* リレーションを含んだデータの登録
+
+これだけは駆使してできると思います。がんばってください！
+
+---
+
+### <span class="icon-leaf icon-sccess"></span> おまけ
+
+* DBのテーブルとapp/modelsファイルを追加するコマンド
+
+{% highlight sh %}
+$ rails generate model テーブル名 カラム:データ型
+$ rake db:migrate
+{% endhighlight %}
+
+* app/controllersとapp/viewsを追加するコマンド
+
+{% highlight sh %}
+$ rails generate controller コントローラー名s #コントローラー名は複数形で書くこと！
+{% endhighlight %}
+
+---
+
+#### Lesson2はここまでです。おつかれさまでした <span class="icon-music"></span>
