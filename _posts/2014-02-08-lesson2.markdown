@@ -56,9 +56,9 @@ config/routes.rbを編集します。
 {% highlight ruby %}
 resources :characters
 
-resources :animes do #編集
+resources :animes do    #編集
   resources :characters #追記
-end #追記
+end                     #追記
 {% endhighlight %}
 
 animesの後ろにつながる部分をdo~endの中に書きます。元々あったresources :charactersは後で使うので残しておきます。
@@ -238,13 +238,13 @@ app/controllers/characters_controller.rb
 {% highlight ruby %}
 def new
   @anime     = Anime.find(params[:anime_id]) #追記
-  @character = @anime.characters.new(params[:character]) #編集
+  @character = @anime.characters.new         #編集
   ・・・
 end
 
 def create
-  @anime     = Anime.find(params[:anime_id]) #追記
-  @character = @anime.characters.new(params[:character]) #編集
+  @anime     = Anime.find(params[:anime_id])             #追記
+  @character = @anime.characters.new(character_params)   #編集
   ・・・
 end
 {% endhighlight %}
@@ -303,7 +303,7 @@ def new
 end
 
 def create
-  @character          = Character.new(params[:character])
+  @character          = Character.new(character_params)
   @character.anime_id = params[:character][:anime_id] #追記
   ・・・
 end
