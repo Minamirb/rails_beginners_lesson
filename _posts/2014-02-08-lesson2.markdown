@@ -107,14 +107,14 @@ app/models以下のファイルを編集します。
 
 anime.rb
 {% highlight ruby %}
-class Anime
+class Anime < ActiveRecord::Base
   has_many :characters #追記
 end
 {% endhighlight %}
 
 character.rb
 {% highlight ruby %}
-class Character
+class Character < ActiveRecord::Base
   belongs_to :anime #追記
 end
 {% endhighlight %}
