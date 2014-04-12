@@ -1,0 +1,292 @@
+---
+layout: default
+title: 初心者レッスン　lesson4
+permalink: rails4.0.2/lesson4
+---
+
+# Lesson4
+
+---
+
+### <span class="icon-leaf"></span> Lesson3の復習
+
+編集したファイル
+
+I18n について
+
+* config/locales/ja.yml
+* config/application.rb
+
+デザインについて
+
+* app/views
+* app/assets
+
+---
+
+### <span class="icon-leaf"></span> カスタマイズに向けての第一歩
+
+Lesson3までで、ごく基本的なページは出来上がって見た目もキレイにすることができます。  
+でも、それで終わりというわけにはいきません。  
+ログイン、検索、ドキュメント出力等々、アプリを作っているといろんな機能を追加したくなります。  
+これから、カッコいいアプリを作るためのコツを少しご紹介します。
+
+---
+
+### <span class="icon-leaf"></span> 便利ツール：gemを使う
+
+gemとは
+: Rubyで書かれたある機能をパッケージ化して機能拡張のために配布されているものです。  
+[RubyGems.org](http://rubygems.org)にあるものは自由にダウンロードして使ってもいいですが、ライセンスはgem毎に異なるのでご注意ください。
+
+<span class="text-error">何を隠そう、実はRailsと呼ばれるものは全部gemで出来ているんです！</span>  
+<br />
+
+> gemの使い方
+
+1. Gemfileにgemを追記
+2. コマンド実行
+{% highlight sh %}
+$ bundle install
+{% endhighlight %}
+あとはREADME、マニュアル等でごにょごにょ。。。  
+
+キビシしいようですが、gemの解説はここまでです。  
+gemはとてもたくさんあって使い方がそれぞれ全く違うので、ひとつひとつ説明することはできません。  
+ここでは、使い勝手のいいgemを紹介するだけにしますので、がんばってREADME等を読んで設定してみてください。  
+質問があればメーリングリストやレッスン中にどしどしご質問ください。
+
+* ログイン devise
+: [https://github.com/plataformatec/devise](https://github.com/plataformatec/devise)
+* 権限設定 cancan
+: [https://github.com/ryanb/cancan](https://github.com/ryanb/cancan)
+* ページネーション kaminari
+: [https://github.com/amatsuda/kaminari](https://github.com/amatsuda/kaminari)
+* PDF出力(html記述) PDFKit
+: [https://github.com/pdfkit/pdfkit](https://github.com/pdfkit/pdfkit)
+* PDF出力(Ruby記述) prawn
+: [https://github.com/prawnpdf/prawn](https://github.com/prawnpdf/prawn)
+* xlsx出力 axlsx
+: [https://github.com/randym/axlsx](https://github.com/randym/axlsx)
+* docxテンプレート出力 docx_templater
+: [https://github.com/BaseCampOps/docx_templater](https://github.com/BaseCampOps/docx_templater)
+* zip出力 rubyzip
+: [https://github.com/rubyzip/rubyzip](https://github.com/rubyzip/rubyzip)
+* csv入出力 csv_rails
+: [https://github.com/yalab/csv_rails](https://github.com/yalab/csv_rails)
+* ファイルアップロード carrierwave
+: [https://github.com/carrierwaveuploader/carrierwave](https://github.com/carrierwaveuploader/carrierwave)
+
+
+---
+
+### <span class="icon-leaf"></span> ちょっとRubyに働いてもらう
+
+ここからは、Rubyのメソッドを使ってアプリの機能を実装していきます。ちょっとプログラマぽくなってきました。  
+プログラミングが不安な人は、まずは必要なものだけ"設定"として覚えていけば大丈夫です。  
+ただ、本格的にメソッドを作っていくには基本的なRubyの知識が必要です。  
+少しずつ本や周りの人のコードから学んで力をつけましょう。
+
+---
+
+#### <span class="icon-leaf"></span><span class="icon-leaf"></span> 言語別役割分担とつながり
+
+![Rails and Languages]({{site.baseurl}}/img/rails_and_languages.png "Rails and Languages")
+
+
+---
+
+#### <span class="icon-leaf"></span><span class="icon-leaf"></span> バリデーションを設定する
+
+データベース内のデータの一貫性を守るための仕組みは、必要に応じて自分で追加しなければいけません。  
+Railsには便利で簡単な仕組みが用意されているのでおおいに活用しましょう。  
+このバリデーションは完全に"設定"だと思っても大丈夫です。  
+app/models以下の、対象データが入っているテーブルと同じ名前のファイル名.rbファイルに追記します。
+
+
+例えば、
+
+* Animeテーブルに同じ名前(name)のアニメが登録されないようにする
+
+app/models/anime.rb
+{% highlight ruby %}
+validates :name, uniqueness: true
+{% endhighlight %}
+
+これ以外にも、入力必須、文字数制限など、いろいろな機能がサポートされていますので[Rails Guides](http://guides.rubyonrails.org/v4.0.2/active_record_validations.html)を参照ください。
+
+---
+
+#### <span class="icon-leaf"></span><span class="icon-leaf"></span> よく使うメソッド
+
+次は、データベースからデータを取って操作をするときによく使うメソッドをご紹介します。
+
+* .where  #データの絞り込み [(Rails Guides)](http://guides.rubyonrails.org/v4.0.2/active_record_querying.html#conditions) -> Arrayぽいものになる
+: 例) 2000年に始まったアニメの一覧
+: @animes = Anime.where(start_year: 2000)
+
+* .order  #データの並べ替え [(Rails Guides)](http://guides.rubyonrails.org/v4.0.2/active_record_querying.html#ordering)
+: 例) 2000年以降に始まった年代順のアニメ一覧
+: @animes = Anime.where("? <= start_year", 2000).order("start_year DESC")
+
+* .map  #データの成形 [(るりま)](http://doc.ruby-lang.org/ja/2.1.0/method/Enumerable/i/collect.html) -> Arrayになる
+: 例) アニメの名前だけの一覧
+: @animes = Anime.all.map{\|anime\| anime.name}
+
+* .group_by  #データのグループ化 [(るりま)](http://doc.ruby-lang.org/ja/2.1.0/method/Enumerable/i/group_by.html) -> Hashになる
+: 例) 年毎にグループ化したアニメの一覧
+: @animes = Anime.all.group_by{\|anime\| anime.start_year}
+
+---
+
+#### <span class="icon-leaf"></span><span class="icon-leaf"></span> .whereメソッドの書き方
+
+.whereはホントによく使いますので、少し詳しく紹介します。
+
+> controllerに書く場合
+
+例えば、app/controllers/animes_controller.rbのindexでは、
+{% highlight ruby %}
+def index
+  @animes = Anime.all
+  ・・・
+end
+{% endhighlight %}
+
+この@animesには、Animeテーブルの全てのデータが入っていますが、これを.whereでデータの絞り込みをしてみましょう。
+
+
+ここで「現在放映中のアニメ(Anime.state == 'active')でかつ、始まった年の降順」のデータがほしいとき、
+
+{% highlight ruby %}
+def index
+  @animes = Anime.where(state: 'active').order("start_year DESC")
+  ・・・
+end
+{% endhighlight %}
+
+viewいじらずにこれだけでデータの内容と順番を変えることができます。
+
+<br />
+
+> scopeとしてmodelに書く場合
+
+このようなデータ操作をいろんなところで使う場合、操作内容が全く同じであればscopeとしてmodelsに登録しておくと、そのscopeを呼ぶだけで同じことができます。  
+そうすることでcontrollersの記述も短くなり、見た目もきれいになって読みやすくなります。  
+こういった同じ機能をまとめたり、コードを見やすくする工夫を`リファクタリング`と呼びます。
+
+
+先ほどの「現在放映中のアニメ(Anime.state == 'active')」の部分をscopeにしてみましょう。  
+app/models/anime.rbへ以下のように追記します。
+
+{% highlight ruby %}
+class Anime < ActiveRecord::Base
+  ・・・
+  scope :active, ->{where(state: 'active')}
+  ・・・
+end
+{% endhighlight %}
+
+scopeのうしろのコロンが付いた変数(シンボルと言います)は、scopeの名前(メソッド名)ですので、分かりやすい名前をつけましょう。  
+そのあとの{ }の中にデータ操作するメソッドを記入します。ここに.order等をつなげて入れても大丈夫です。
+
+
+それから、controllerを編集します。
+{% highlight ruby %}
+def index
+  @animes = Anime.active.order("start_year DESC")
+  ・・・
+end
+{% endhighlight %}
+
+どうでしょう？ちょっと短くなって読みやすくなりましたか？  
+このように、データを集計・編集するようなメソッドはmodelに書くようにし、  
+controller内のコードが長くなりすぎないようにするというのが最近の流行のようです。
+
+---
+
+#### <span class="icon-leaf"></span><span class="icon-leaf"></span> クラスメソッドとインスタンスメソッドについて
+
+メソッドという言葉が何度も出てきていますが、大きく2種類に分かれます。
+
+クラスメソッド
+: Rails内では、主にクラス(テーブル)のデータ全体にかかわるメソッド
+: 例).new、.find、.whereなど
+
+インスタンスメソッド
+: Rails内では、主にインスタンス(テーブル内の個別データ)にかかわるメソッド
+: 例).map、.group_by、.sort_by、.gsubなど
+
+ヘルパーメソッド
+: インスタンスメソッドの一種で、Rails固有のviewのサポートをするメソッド
+: 直接データベースからデータを取るようなことはせず、controllerで取ったデータをviewで表示するために成形したり、よく使う定型データを取得したりすることを目的とします。
+
+
+Rubyのメソッドはdefで始まるメソッド名の宣言から記述しますが、クラスメソッドとインスタンスメソッドでは書き方がちょっと異なります。
+
+> クラスメソッド
+{% highlight ruby %}
+def self.メソッド名
+  ・・・
+end
+{% endhighlight %}
+
+例：（考え中）
+
+<br />
+
+> インスタンスメソッド
+{% highlight ruby %}
+def メソッド名
+  ・・・
+end
+{% endhighlight %}
+
+例：（考え中）
+
+クラスメソッドにはself.をつけないといけないので注意しましょう。
+
+
+このあたりがよくわからないという方は、とりあえずdefでメソッドを作るのは後回しにして、  
+controllerが長くなってもいいので.where等で思ったデータを取れるようになることを目指してください。  
+自分でメソッドを作るのはその後でも遅くありません。
+
+---
+
+#### <span class="icon-leaf"></span><span class="icon-leaf"></span> viewで使うヘルパーメソッド
+
+データの操作に関するメソッドはapp/modelsに記入しますが、ヘルパーメソッドは専用のapp/helpersに記入します。
+
+
+例えば、アニメの一覧で放映中を'active'と表示せずに'○'で表示させたいとき、
+app/helpers/anime_helper.rb
+
+{% highlight ruby %}
+module AnimeHelper
+  def convert_maru(state)
+    if state == 'active'
+      '○'
+    end
+  end
+end
+{% endhighlight %}
+
+というconvert_maruというヘルパーメソッドを定義してviewで呼び出せばOK。
+
+app/views/animes/show.html.erb
+{% highlight erb %}
+  <%= convert_maru(anime.state) %>
+{% endhighlight %}
+
+他には、特定の文字だけ強調させたり、ひらがなをローマ字変換したり、電話番号の携帯・固定の振り分けなど、表示に関するものは何でもアリですよ。
+
+---
+
+### <span class="icon-leaf icon-sccess"></span> ここまでできること
+
+* gemを使う
+* RubyやRailsのメソッドでアプリをカスタムする
+
+---
+
+#### Lesson4はここまでです。おつかれさまでした <span class="icon-music"></span>
