@@ -93,6 +93,11 @@ $ rails console
 $ rails server
 {% endhighlight %}
 
+このコマンドで特にエラーが出なければ、ブラウザでlocalhost:3000にアクセスしてみましょう。  
+何かRailsのページが見えたらOKです。
+
+<br />
+
 * 便利コマンドいろいろ
 
 {% highlight sh %}
