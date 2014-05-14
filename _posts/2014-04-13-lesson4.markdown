@@ -36,8 +36,11 @@ Lesson3までで、ごく基本的なページは出来上がって見た目も�
 ### <span class="icon-leaf"></span> 便利ツール：gemを使う
 
 gemとは
-: Rubyで書かれたある機能をパッケージ化して機能拡張のために配布されているものです。  
-[RubyGems.org](http://rubygems.org)にあるものは自由にダウンロードして使ってもいいですが、ライセンスはgem毎に異なるのでご注意ください。
+: Rubyで書かれたある機能をパッケージ化して機能拡張のために配布されているもの
+
+[RubyGems.org](http://rubygems.org)にあるものは自由にダウンロードして使ってもいいですが、ライセンスはgem毎に異なるのでご注意ください。  
+または、[The Ruby Toolbox](https://www.ruby-toolbox.com)に、機能毎のgemがずらりと並んであるので、そちらで調べて使ってみるのもいいかもしれません。
+
 
 <span class="text-error">何を隠そう、実はRailsと呼ばれるものは全部gemで出来ているんです！</span>  
 <br />
@@ -76,6 +79,16 @@ gemはとてもたくさんあって使い方がそれぞれ全く違うので�
 : [https://github.com/yalab/csv_rails](https://github.com/yalab/csv_rails)
 * ファイルアップロード carrierwave
 : [https://github.com/carrierwaveuploader/carrierwave](https://github.com/carrierwaveuploader/carrierwave)
+* 管理画面の自動生成 rails_admin
+: [https://github.com/sferik/rails_admin](https://github.com/sferik/rails_admin)
+* テスト rspec（有名になりすぎてgemという印象がないですが・・・）
+: [https://github.com/rspec/rspec](https://github.com/rspec/rspec)
+* URLのid名を適当な名前に変換 friendly_id
+: [https://github.com/norman/friendly_id](https://github.com/norman/friendly_id)
+* OAuth認証プロバイダー doorkeeper
+: [https://github.com/doorkeeper-gem/doorkeeper](https://github.com/doorkeeper-gem/doorkeeper)
+* マルチ認証クライアント omniauth
+: [https://github.com/intridea/omniauth](https://github.com/intridea/omniauth)
 
 
 ---
