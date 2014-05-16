@@ -1,0 +1,250 @@
+---
+layout: default
+title: 初心者レッスン　lesson5
+permalink: rails4.0.2/lesson5
+---
+
+# Lesson5
+
+---
+
+### <span class="icon-leaf"></span> Lesson4の復習
+
+gemを使う
+
+* $ bundle install
+
+Rubyに働いてもらう
+
+* バリデーション
+* よく使うメソッド
+
+---
+
+### <span class="icon-leaf"></span> サイトを公開する
+
+いよいよ、自分のアプリを公開する日がきました。  
+出来はともかく、便利に使うために作ったアプリですから、使ってナンボですね。  
+
+ただ、アプリを公開するにはサーバーが必要ですが、サーバーの勉強までするのはなかなか大変です。  
+ここでは[heroku](https://www.heroku.com)という初心者にも比較的優しい、サーバーのことを知らなくても何とかなるサービス（お試し程度なら無料！）があるので、それを使いましょう。  
+
+ただし、heroku上ではRubyのバージョンがデフォルトで2.0.0です。自分でherokuをカスタムしない人はアプリがruby2.0.0で動くかどうか確認してください。  
+また、バージョン管理システムの[git](http://git-scm.com)を使う必要があります。gitのことがよくわからないという方は、[こちらのページ]({{site.baseurl}}intro-git)に最低限必要なことが書いてありますので、参考にしてください。
+
+---
+
+### <span class="icon-leaf"></span> herokuへのリリースの流れ
+
+herokuへリリースする際の手順は以下のとおりです。
+
+1. herokuのアカウントを取る
+2. heroku toolbeltのインストール
+3. ssh鍵を作る
+4. 公開鍵(*.pub)を登録する
+5. ssh認証鍵のPATHを設定する
+6. herokuにloginする
+7. DB用gemの準備
+8. URLを作る
+9. gitでherokuへpushする
+10. heroku上のDBをmigrateする
+
+たくさんあるようですが、1~4は1度すれば必要ありません。5もPCの設定によっては必要ないこともあります。  
+ひとつずつ手順を確認していきましょう。
+
+---
+
+#### 1. herokuのアカウントを取る
+
+[herokuのサイト](https://www.heroku.com)にアクセスしてSign upしましょう。  
+アカウントを作るだけでは課金されたりしないので安心してください。
+
+---
+
+#### 2. heroku toolbeltのインストール
+
+[heroku toolbeltのサイト](https://toolbelt.heroku.com)にアクセスして、自分のOSのheroku toolbeltをインストールしましょう。  
+heroku専用のコマンドを使用するので、必ずインストールしてください。  
+gitが初めての方も、こちらでgitがインストールされるので便利です。
+
+---
+
+#### 3. ssh鍵を作る
+
+herokuとのやり取りは[ssh](http://ja.wikipedia.org/wiki/Secure_Shell)で通信します。  
+これに必要な鍵（と呼ばれるファイル）を作成しましょう。  
+いくつかのやり取りが必要なので、それぞれ入力してください。  
+パスワード(passphrase)は入力しなくても次に進めますが、よりセキュアにするために設定することをオススメします。
+{% highlight sh %}
+$ ssh-keygen -f ~/鍵ファイルを置くPATH/鍵のファイル名
+{% endhighlight %}
+
+---
+
+#### 4. 公開鍵(*.pub)を登録する
+
+今作ったsshの<span class="text-error">公開鍵(拡張子が.pub)</span>をherokuに登録します。  
+間違ってもここで秘密鍵(拡張子がない)をaddしないでください。  
+万が一間違ってaddしてしまった場合は、安全のためにssh鍵を作りなおしましょう。
+{% highlight sh %}
+$ heroku keys:add ~/鍵ファイルを置くPATH/鍵のファイル名.pub
+{% endhighlight %}
+
+---
+
+#### 5. ssh鍵のPATHを設定する
+
+herokuにloginするために、自分のPCへssh鍵のPATHを設定しておきます。  
+これをすると、login時にssh鍵の場所をいちいち書かずに済みます。
+{% highlight sh %}
+$ ssh-add ~/鍵ファイルを置くPATH/鍵のファイル名
+{% endhighlight %}
+このときの鍵ファイル名は秘密鍵のほうです。  
+
+
+もし、ssh-addでエラーになるときは、以下のコマンドでssh-agentというプロセスを起動してみてください。
+{% highlight sh %}
+$ eval `ssh-agent`
+{% endhighlight %}
+
+---
+
+#### 6. herokuにloginする
+
+herokuにアクセスするために、ターミナルからloginしておきます。  
+いくつかの質問がありますが、emailとパスワードはherokuアカウントを作成したときのemailとパスワードです。  
+ssh keyは自分で作成したので"n"を入力してください。
+{% highlight sh %}
+$ heroku login
+{% endhighlight %}
+
+---
+
+#### 7. DB用gemの準備
+
+heroku上のDBは、postgresqlです。他のDBは使えなくはないのですが、いばらの道なのでやめておきましょう。  
+postgresqlを使用するための準備をします。gemが必要なのでGemfileを編集します。  
+まずは以下の3行を追加します。  
+
+
+Gemfile
+{% highlight ruby %}
+group :production do
+  gem 'pg'
+end
+{% endhighlight %}
+groupで後ろに:productionとありますが、これはアプリを起動するときのモードのことです。  
+railsはproduction（本番）モード、development（開発）モード、test（テスト）モードの3つの起動モードがあります。  
+heroku上にアプリを乗せると、自動的にproductionモードで起動されるので、そのときだけpostgresqlのgemを使うという意味です。  
+
+
+今、自分のPCで何気なくrails sとコマンドをたたいているときは、developmentモードで動いています。  
+このときはsqlite3を使用しているので、sqlite3のgemにも細工をしておきます。  
+すでにgem 'sqlite3'という行があるはずですので、その前後を:developmentで囲みましょう。  
+
+Gemfile
+{% highlight ruby %}
+group :development do
+  gem 'sqlite3'
+end
+{% endhighlight %}
+
+heroku上ではGemfileではなく、Gemfile.lock（bundle installしたら自動で変更されるgem管理ファイル）の方が重要ですので、忘れずにbundle installしてコミットしておいてください。
+
+{% highlight sh %}
+$ bundle install
+$ git add .
+$ git commit -m "change and add gems for heroku."
+{% endhighlight %}
+
+---
+
+#### 8. URLを作る
+
+アプリにアクセスするにはURLが必要ですが、無料では自分のドメインを使うことはできません。  
+heroku上でのプロジェクト名がURLの一部に使われます。  
+例えば、プロジェクト名が minamirb だとすると、URLは http://minamirb.herokuapp.comになります。  
+
+
+herokuサイトにログインしてプロジェクトを作る方法もありますが、ターミナルからherokuのプロジェクトを作った方があとがラクなので、  
+コマンドで作ってしまいましょう。  
+アプリのディレクトリにcdしてからコマンドを実行してください。
+{% highlight sh %}
+$ cd 自分のアプリのディレクトリ
+$ heroku create プロジェクト名
+{% endhighlight %}
+もし、このプロジェクト名が他の人とかぶっていた場合はメッセージが帰ってくるのでご心配なく。
+
+---
+
+#### 9. gitでherokuへpushする
+
+いよいよ、herokuへアプリを預けるときがきました。  
+ターミナルからgitでherokuへ渡します。  
+<span class="text-error">herokuへ渡す前に、アプリのコードがすべてcommitされているかどうか確認してください。</span>
+{% highlight sh %}
+$ cd 自分のアプリのディレクトリ
+$ git push heroku master
+{% endhighlight %}
+実行すると、問題なければターミナル上でherokuがgemのインストールをしたり、  
+アプリを公開する準備をしてるメッセージがずらーーーーっと流れてきます。  
+
+---
+
+#### 10. heroku上のDBをmigrateする
+
+herokuへのpushができたら、実はもうアプリのURLは生きています。試しに自分のURLへアクセスしてみてください。  
+でも、何か変な画面が出てきますよね？  
+DBの準備がまだなんです。RailsはmigrateしないとアプリのDBは出来ません。  
+ということで、heroku上でmigrateしましょう。
+{% highlight sh %}
+$ heroku run rake db:migrate
+{% endhighlight %}
+これでどうでしょう？無事にherokuのURLからアプリが見られましたか？
+
+---
+
+### <span class="icon-leaf"></span> おまけ
+
+> エラー画面の見方
+
+最初のうちは、エラー画面が出るとそれだけでびっくりして冷や汗ものだと思います。  
+でも、Railsのエラー画面は親切にいろんなことを教えてくれているので、落ち着いて読んでみましょう。  
+ここでは、よくあるエラー画面の見方と、よくあるエラーをご紹介します。
+
+![Rails Error Window]({{site.baseurl}}/img/rails_error_window4.png "Rails Error window")
+
+1. エラーのタイトル
+: "NoMethodError"が、今回のエラーの名前です。これが何を意味するかは、あとでお話します。"in"のうしろがどのactionで起きたかを示しています。  
+"Issues#show"は、issues_controllerのshowメソッドで"NoMethodError"が起きたという意味です。
+
+2. エラーが起きたコードの場所
+: 実際にどのファイルのコードでエラーが起きてしまったかを示しています。  
+最初の".../show.html.erb"が該当ファイルで、"line #10"というのがそのファイルの10行目という意味です。
+
+3. エラーの具体的な内容
+: 具体的なエラー内容を示しています。  
+ここでは、'contents'というメソッドは、"for"後ろに書いてあるオブジェクトで定義されていませんという意味です。
+
+4. エラーが起きたコードの表示
+: エラーが起きた箇所の前後を表示してくれています。  
+10行目に"<%= @issue.contents %>"があって、この.contentsが@issueで定義されてないようです。
+
+5. エラーが起きるまでの内部トレース
+: エラーになるまでrailsの中のどこのコード、メソッドが動いていたかを示しています。  
+ほとんどの場合1~4の内容でエラー原因の特定はできますが、railsに深く関わるようなエラーになるとこのとレースが役に立ちます。
+
+> よくありがちなエラー
+
+* NoMethodError
+: エラーで示されたメソッドがクラスで定義されていないという意味です。メソッド名のtypo、メソッドの前の部分の中身がnil、そもそもメソッドが定義されていないなど、そのメソッドだけでなくメソッドの前の部分に問題があることもあります。
+
+* SyntaxError
+: 文法的なエラーを示しています。例えば、ifに対するendの書き忘れなどです。
+
+* NameError
+: その名のとおり、名前を間違えたときのエラーです。例えば、クラス名や変数のtypoでこのエラーが出ます。
+
+---
+
+#### これでMinami.rbの初心者レッスンは終わりです。おつかれさまでした <span class="icon-music"></span>
