@@ -216,7 +216,7 @@ $ heroku run rake db:migrate
 
 1. エラーのタイトル
 : "NoMethodError"が、今回のエラーの名前です。これが何を意味するかは、あとでお話します。"in"のうしろがどのactionで起きたかを示しています。  
-"Issues#show"は、issues_controllerのshowメソッドで"NoMethodError"が起きたという意味です。
+"Animes#show"は、animes_controllerのshowメソッドで"NoMethodError"が起きたという意味です。
 
 2. エラーが起きたコードの場所
 : 実際にどのファイルのコードでエラーが起きてしまったかを示しています。  
@@ -228,7 +228,7 @@ $ heroku run rake db:migrate
 
 4. エラーが起きたコードの表示
 : エラーが起きた箇所の前後を表示してくれています。  
-10行目に"<%= @issue.contents %>"があって、この.contentsが@issueで定義されてないようです。
+10行目に"<%= @anime.contents %>"があって、この.contentsが@animeで定義されてないようです。
 
 5. エラーが起きるまでの内部トレース
 : エラーになるまでrailsの中のどこのコード、メソッドが動いていたかを示しています。  
