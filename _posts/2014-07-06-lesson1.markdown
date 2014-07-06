@@ -1,7 +1,7 @@
 ---
 layout: default
 title: 初心者レッスン　lesson1
-permalink: rails4.1.2/lesson1
+permalink: rails4.1.4/lesson1
 ---
 
 # Lesson1
