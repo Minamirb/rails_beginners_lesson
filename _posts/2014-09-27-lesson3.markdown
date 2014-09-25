@@ -1,0 +1,268 @@
+---
+layout: default
+title: 初心者レッスン　lesson3
+permalink: rails4.1.4/lesson3
+---
+
+# Lesson3
+
+---
+
+### <span class="icon-leaf"></span> Lesson2の復習
+
+使ったコマンド
+
+{% highlight sh %}
+$ rake routes
+$ rails generate model テーブル名 カラム:データ型
+$ rake db:migrate
+$ rails generate controller コントローラー名s #コントローラー名は複数形で書くこと！
+{% endhighlight %}
+
+編集したファイル
+
+* config/routes.rb
+* app/models以下の各ファイル
+* app/views以下の各ファイル
+* app/controllers以下の各ファイル
+
+これらのファイルの関係性、覚えてますか？
+[Rails内の役割分担]({{site.baseurl}}rails4.1.4/lesson1#gem_roles)
+
+---
+
+### <span class="icon-leaf"></span> 今日は見た目（デザイン）を整えるお話
+
+webアプリである以上、やっぱり見た目は大事ですね。  
+どこかの企業ホームページなどはともかく、個人サイトや社内アプリで使うぐらいなら著作権フリーのデザインがいろいろあるので、どんどん活用しましょう。
+
+また、ここではLesson3でデザインを取り上げましたが、適応させるタイミングはもっと早くてもいいと思います。  
+見た目がきれいなところにいろいろ実装していくほうが完成イメージが湧きやすいし、実装していてもテンションがあがると思います。
+
+---
+
+### <span class="icon-leaf"></span > I18nの設定
+
+Railsでのデフォルトの表示言語は英語です。  
+ちょっとぐらい英語でも、、、と思わなくはないのですが、せっかく使えるエラーメッセージも全部英語になってしまいますので、そこは日本語にしておきましょう。
+
+* ここ[ Github svenfuchs/rails-i18n ](https://github.com/svenfuchs/rails-i18n/tree/master/rails/locale)から日本語の元ネタja.ymlをコピー
+
+* config/locales/ の下にja.ymlとして作成
+
+* config/application.rb を編集
+
+application.rb
+{% highlight ruby %}
+  # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
+  config.i18n.default_locale = :ja #:enを:jaに変更
+{% endhighlight %}
+
+これだけで、ja.yml にあるエラーメッセージなどが日本語化されます。  
+
+ついでに、DBのフィールド（カラム）も日本語になるように編集しましょう。
+
+* config/locales/ja.yml にフィールド（カラム）の日本語名を追加  `インデントに注意しましょう`  
+例：Animeクラス（テーブル）にnameというフィールド（カラム）がある場合。
+
+ja.yml
+{% highlight sh %}
+  activerecord:
+    errors:
+      template:
+  # 省略
+    attributes:
+      anime:
+        name: 名前
+{% endhighlight %}
+
+これでviews/animes/_form.html.erb等でページを表示してみましょう。
+
+フィールド（カラム）のタイトルが日本語になればOKです。
+
+残念ながら、index.html.erb や show.html.erb などでthタグに直接書かれているフィールド名は、ひとつずつ手動で変更しないと変わりません。がんばってください。
+
+---
+
+### <span class="icon-leaf"></span > デザインのfix
+
+> <b>Asset Pipeline とは?</b>
+
+Railsには、Asset Pipelineという賢い機能があります。Asset Pipelineは、assetsフォルダの下に置かれたjavascript系やcss系のコードをコンパクトに圧縮して、ブロジェクト毎に１つのファイルとして読み取れるようにしてくれます。このおかげで、アプリのページを読み込むとき、サーバーとjsやcssファイルのやり取りが少なくて済み、その分、レスポンスが速くなるというものです。
+
+<br />
+
+それぞれのソースは、置く場所が決まっています。また、scssはcssへ、coffeescriptはjacascriptへコンパイルしてくれるという優れものです。ちなみに、lessやhamlも使えますが、別途専用のgemをインストールする必要があります（ここでは解説しません）。
+
+      *  html, erb                => app/views/
+      *  scss, css                => */assets/stylesheets/
+      *  coffeescript, javascript => */assets/javascripts/
+      *  image                    => */assets/images/
+
+基本的には app/aseets の下に置きますが、Rails4系になって置き場所が増えました。
+
+      * app/assets    => このプロジェクト（アプリ）専用の個々のファイル
+      * lib/assets    => このプロジェクト（アプリ）のライブラリとして使うファイル
+      * vendor/assets => 外部からもらってきたファイル
+
+<br />
+
+> <b>view（テンプレート）の構成</b>
+
+ヘッダー、フッター、サイドメニューなどを指定するのは app/views/layouts/application.html.erb です。
+
+application.html.erb に記述されている<%= yield %>部分に、各viewのhtmlが入ることになります。
+
+![Rails Folders]({{site.baseurl}}/img/rails_application_html.png "Rails Folders")
+
+全体のデザインを application.html.erb + application.css に配置して、必要なものを誤って消してないか、こまめにブラウザでチェックしましょう。
+
+imageファイルは、gif,png,jpgがOKです。
+
+例：imageファイルの呼び方
+
+{% highlight ruby %}
+<%= image_tag('line.png') %>
+{% endhighlight %}
+
+<br />
+
+また、よく使う`<a> </a>`は、Railsがサポートしているerbの機能として`<%= %>`（erbタグ）でlink_toに置き換えておくと後々便利です。
+
+他にもerb固有の機能はありますが、初心者としてとりあえず aタグのことは覚えておきましょう。
+
+<br />
+
+> おまけ：著作権のゆるいフリーデザインがおいてあるサイト
+
+[freeCSStemplates.org](http://www.freecsstemplates.org/css-templates/)  
+[openwebdesign](http://www.openwebdesign.org)  
+[css creme](http://csscreme.com)  
+[PSDFAN](http://psd.fanextra.com/articles/34-free-beautiful-xhtmlcss-templates/)
+
+などなど
+
+---
+
+### <span class="icon-leaf icon-sccess"></span> twitter bootstrapを使う
+
+シンプルでいいなら、ちまたで流行のtwitter bootsttrapならhtmlのclassを指定するだけでよく、早くて使い勝手もいいと思います。
+
+* 本家サイト [twitter bootstrap](http://getbootstrap.com/)
+
+Railsで使う場合は、専用のgemをインストールすると便利です。
+ここでは[twitter-bootstrap-rails](https://github.com/seyhunak/twitter-bootstrap-rails)をインストールして、cssでtwitter bootstrapを使う方法を解説します。
+
+* Gemfileにgemを追記
+{% highlight sh %}
+gem 'twitter-bootstrap-rails'
+{% endhighlight %}
+
+* gemのインストール
+{% highlight sh %}
+$ bundle install
+{% endhighlight %}
+
+* twitter bootstrap用のcssやjsのインストール
+{% highlight sh %}
+$ rails generate bootstrap:install static
+{% endhighlight %}
+
+* app/views/layouts/application.html.erbの編集
+
+このコマンドで、もともとあるapplication.html.erbのファイルを勝手に編集してくれるので、conflictを聞かれたら y を入力します。
+{% highlight sh %}
+$ rails g bootstrap:layout application fluid
+    conflict  app/views/layouts/application.html.erb
+Overwrite /Users/satomicchy/railsapp/lesson_demo/app/views/layouts/application.html.erb? (enter "h" for help) [Ynaqdh] y
+       force  app/views/layouts/application.html.erb
+{% endhighlight %}
+
+これでブラウザで確認してみましょう。
+
+あとは、本家サイトの[レイアウト例](http://getbootstrap.com/getting-started/)や[ボタン](http://getbootstrap.com/css/#buttons)を見ながら、いろいろ試してみてください。
+
+---
+
+### <span class="icon-leaf icon-sccess"></span> vendor/ や lib/ にファイルを置いたらファイル名を追加
+
+app/assets 以下にファイルを追加したときは、何もしなくてもRails側で読み取ってくれますが、vendorやlibにファイルを置いたときは、ファイル名を追加してあげないと読み取ってくれないので注意してください。
+
+例：vendor/assets/stylesheets/fullcalendar.css を追加した場合
+
+app/assets/stylesheets/application.css
+{% highlight ruby %}
+ *
+ *= require fullcalendar #require_selfより上に追記
+ *= require_tree .
+ *= require_self
+ */
+{% endhighlight %}
+
+例：vendor/assets/javascripts/fullcalendar.min.js を追加した場合
+
+app/assets/javascripts/application.js
+{% highlight ruby %}
+//= require jquery
+//= require jquery_ujs
+//= require twitter/bootstrap
+//= require fullcalendar.min #turbolinksより上に追記
+//= require turbolinks
+//= require_tree .
+{% endhighlight %}
+
+---
+
+### <span class="icon-leaf icon-sccess"></span> おまけ
+
+> newやeditページから直接indexページへ移る方法
+
+例：animes#new -> animes#create -> animes#show を animes#new -> animes#create -> animes#indexへ
+
+app/controllers/animes_controller.rb
+{% highlight ruby %}
+  def create
+    @anime = Anime.new(anime_params)
+
+    respond_to do |format|
+      if @anime.save
+        format.html { redirect_to animes_path } #編集
+        format.json { render action: 'show', status: :created, location: @anime }
+      else
+        format.html { render action: 'new' }
+        format.json { render json: @anime.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+{% endhighlight %}
+
+<br />
+
+> サイト入り口のwelcomeページを作成する方法（controllerとviewだけ追加する方法）
+
+* welcome controllerにindexで表示するとして
+{% highlight sh %}
+$ rails generate controller welcome index
+{% endhighlight %}
+
+* config/routes.rbを編集
+
+routes.rb
+{% highlight ruby %}
+root 'welcome#index'
+{% endhighlight %}
+
+この場合も、もれなく app/assets/ 内のapplication.html.erbやcssのレイアウトが適応されます。もし、welcomeページでそれらのレイアウトを無視したい場合は、以下を追加します。
+
+app/controllers/welcome_controller.rb
+{% highlight ruby %}
+class WelcomeController < ApplicationController
+  def index
+    render layout: false #追記
+  end
+end
+{% endhighlight %}
+
+---
+
+#### Lesson3はここまでです。おつかれさまでした <span class="icon-music"></span>
